@@ -1,0 +1,131 @@
+# this is an example of the Uber API
+# as a demonstration of an API spec in YAML
+swagger: '2.0'
+info:
+  title: QunCRM API Doc
+  description: Move your app forward with the Uber API
+  version: "1.0.0"
+# the domain of the service
+host: api.uber.com
+# array of all schemes that your API supports
+schemes:
+  - https
+# will be prefixed to all paths
+basePath: /v1
+produces:
+  - application/json
+paths:
+  /helpdesk/password:
+    put:
+      tags:
+        - helpdesk
+      summary: Update the password of helpdesk
+      operationId: updatePwd
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: query
+          description: Helpdesk Id
+          required: true
+          type: string
+        - name: currentPwd
+          in: query
+          description: Current helpdesk password, encrypted by md5
+          required: true
+          type: string
+        - name: newPwd
+          in: query
+          description: New helpdesk password, encrypted by md5
+          required: true
+          type: string
+        - name: newPwdC
+          in: query
+          description: New helpdesk confirmed password, encrypted by md5
+          required: true
+          type: string
+      responses:
+        "200":
+          description: successful operation
+        "400":
+          description: invalid value
+      security:
+        - oauth:
+          - write
+          - read
+  /conversation/settings:
+    get:
+      tags:
+        - conversation
+      summary: Get system setting for chat conversation
+      operationId: getConversationSetting
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: status
+          description: Status values that need to be considered for filter
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+      responses:
+        "200":
+          description: successful operation
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Helpdesk"
+        "400":
+          description: Invalid status value
+      security:
+        - oauth:
+          - write
+          - read
+securityDefinitions:
+  oauth:
+    type: oauth2
+    authorizationUrl: http://petstore.swagger.wordnik.com/api/oauth/dialog
+    flow: implicit
+    scopes:
+      write: modify information
+      read: read information
+definitions:
+  Helpdesk:
+    properties:
+      _id:
+        type: object
+      email:
+        type: string
+      badge:
+        type: string
+      accountId:
+        type: object
+      isEnabled:
+        type: boolean
+      isActivated:
+        type: boolean
+      language:
+        type: string
+      avatar:
+        type: string
+      clientCount:
+        type: integer
+        description: The number of connected users
+      salt:
+        type: string
+      password:
+        type: string
+      name:
+        type: string
+      updatedAt:
+        type: string
+        format: date-time
+      createdAt:
+        type: string
+        format: date-time
+      isDeleted:
+        type: boolean

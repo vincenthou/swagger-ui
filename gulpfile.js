@@ -15,6 +15,10 @@ var connect = require('gulp-connect');
 var header = require('gulp-header');
 var pkg = require('./package.json');
 var order = require('gulp-order');
+var yaml = require('gulp-yaml');
+var filter = require('gulp-filter');
+var fs = require('fs');
+var path = require('path');
 var banner = ['/**',
   ' * <%= pkg.name %> - <%= pkg.description %>',
   ' * @version v<%= pkg.version %>',
@@ -96,6 +100,8 @@ gulp.task('less', ['clean'], function() {
  */
 gulp.task('copy', ['less'], function() {
 
+  var filterFiles = filter(['**/*', '!index.html']);
+
   // copy JavaScript files inside lib folder
   gulp
     .src(['./lib/**/*.{js,map}'])
@@ -105,8 +111,31 @@ gulp.task('copy', ['less'], function() {
   // copy all files inside html folder
   gulp
     .src(['./src/main/html/**/*'])
+    .pipe(filterFiles)
     .pipe(gulp.dest('./dist'))
     .on('error', log);
+});
+
+/**
+ * Generate the json docs
+ */
+gulp.task('gen_doc', ['copy'], function() {
+
+  // Generate json document from yaml files
+  gulp
+    .src(['./docs/**/*.yml'])
+    .pipe(yaml())
+    .pipe(gulp.dest('./dist/docs'));
+
+  var content = fs.readFileSync('./src/main/html/index.html', {encoding: 'utf8'});
+  fs.readdirSync('./docs').forEach(function(file){
+    var filename = path.basename(file, '.yml');
+    var replaceContent = content.replace('{{json_path}}', '/docs/' + filename + '.json');
+    fs.writeFile('./dist/' + filename + '.html', replaceContent, function(err){
+      if (err) throw err;
+        console.log(filename + '.html is copied!');
+    });
+  });
 });
 
 /**
@@ -133,5 +162,5 @@ function log(error) {
 }
 
 
-gulp.task('default', ['dist', 'copy']);
+gulp.task('default', ['dist', 'copy', 'gen_doc']);
 gulp.task('serve', ['connect', 'watch']);
